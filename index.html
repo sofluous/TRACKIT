@@ -1,0 +1,3227 @@
+<!DOCTYPE html>
+<html lang="en">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple Food Tracker</title>
+    <style>
+        :root {
+            --menu-height: 42px;
+            --space-xs: 0.25rem;
+            --space-sm: 0.5rem;
+            --space-md: 1rem;
+            --space-lg: 2rem;
+            --space-xl: 3rem;
+
+            --rad-xs: 4px;
+            --rad-sm: 8px;
+            --rad-md: 12px;
+            --rad-lg: 16px;
+
+
+            /* Base Greys */
+            --color-bg: #1d1e22;
+            --color-surface: #2a2c31;
+            --color-card: #2e2f36;
+            --color-border: #3a3b41;
+            --color-sidepanel: #512bc1;
+
+            /* Text */
+            --color-text-primary: #d0d0d0;
+            --color-text-secondary: #888888;
+            --color-text-disabled: #555555;
+            --color-text-inverse: #000000;
+
+            /* Accent */
+            --color-primary: #a6e22e;
+            --color-secondary: #66d9ef;
+            --color-tertiary: #e57c45;
+            --color-tertiary-bg: rgba(229, 124, 69, 0.1);
+            /* for chips or subtle fills */
+            --color-tertiary-border: #e57c45;
+
+
+            /* Buttons */
+            --color-btn-primary-bg: var(--color-primary);
+            --color-btn-primary-text: var(--color-text-inverse);
+            --color-btn-secondary-bg: #d0d3db;
+            --color-btn-secondary-text: var(--color-text-inverse);
+            --color-btn-disabled-bg: #2c2e34;
+            --color-btn-disabled-text: var(--color-text-disabled);
+            --color-hover-bg: #444750;
+
+            --color-scroll-thumb: var(--color-btn-secondary-bg);
+            /* #383b42 */
+            --color-scroll-thumb-hover: #50545c;
+            /* lighter for hover */
+            --color-scroll-track: transparent;
+            /* or var(--color-card) */
+
+            /* Graph / Visuals */
+            --color-graph-line: var(--color-primary);
+            --color-graph-point: var(--color-primary);
+            --color-graph-label: var(--color-text-secondary);
+            --color-graph-today: var(--color-primary);
+            --color-graph-selected-outline: var(--color-primary);
+
+            /* States */
+            --color-today-marker: #2c89ff;
+            --color-selected-outline: #4f8cff;
+
+            /* Typography */
+            --font-base: 'Inter', sans-serif;
+            --text-size-sm: 0.875rem;
+            --text-size-md: 1rem;
+            --text-size-lg: 2rem;
+            --text-size-xl: 3rem;
+            --text-weight-regular: 400;
+            --text-weight-bold: 600;
+
+            /* Highlights */
+            --color-highlight-green: #8ee38e;
+            --color-highlight-blue: #7f9bff;
+            --color-day-card-fill: var(--color-card);
+        }
+
+
+
+        body {
+            background: var(--color-bg);
+            font-family: var(--font-base);
+            color: var(--color-text-primary);
+            margin: 0;
+        }
+
+        button {
+            font-size: var(--text-size-md);
+            padding: var(--space-sm) var(--space-sm);
+            border-radius: var(--rad-sm);
+            border: none;
+            cursor: pointer;
+            align-items: center;
+        }
+
+        button:hover {
+            filter: brightness(1.1);
+        }
+
+        input {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            color: var(--color-text-primary);
+            border-radius: var(--rad-sm);
+            padding: var(--space-sm);
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            /* ✅ Instead of auto */
+            max-height: unset;
+            object-fit: contain;
+            flex: 1 1 auto;
+            /* ✅ Allow it to grow inside card-body */
+        }
+
+        /* Base scrollbar style */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--color-scroll-track);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--color-scroll-thumb);
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: var(--color-scroll-thumb-hover);
+        }
+
+        ::-webkit-scrollbar-button {
+            display: none;
+        }
+
+        .page {
+            display: flex;
+            flex-direction: row;
+            flex: 1;
+            min-height: 0;
+            height: calc(100vh - var(--menu-height));
+            gap: var(--space-md);
+            box-sizing: border-box;
+            padding: var(--space-md);
+        }
+
+        .menu-bar {
+            display: flex;
+            align-items: center;
+            height: var(--menu-height);
+            padding: 0 var(--space-sm);
+            gap: var(--space-md);
+            background: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+            color: var(--color-text-secondary);
+            font-family: var(--font-base);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-sizing: border-box;
+        }
+
+        .menu {
+            position: relative;
+        }
+
+        .menu-button {
+            font-weight: 600;
+            color: var(--color-btn-primary-text);
+            background: var(--color-btn-secondary-bg);
+            border: none;
+            font-size: var(--text-size-md);
+            cursor: pointer;
+            padding: var(--space-xs) var(--space-sm);
+        }
+
+        .menu-button:hover,
+        .menu-button:focus {
+            background: #f0f0f0;
+            border-radius: var(--rad-xs);
+        }
+
+        .dropdown {
+            display: none;
+            position: absolute;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+            padding: var(--space-sm) 0;
+            border: 1px solid #ddd;
+            border-radius: var(--rad-xs);
+            margin-top: var(--space-xs);
+            min-width: 160px;
+            z-index: 1001;
+        }
+
+        .dropdown-item {
+            display: block;
+            width: 100%;
+            padding: var(--space-sm) 1rem;
+            text-align: left;
+            background: none;
+            border: none;
+            font-size: var(--text-size-md);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .sidebar {
+            position: sticky;
+            top: var(--menu-height);
+            align-self: stretch;
+            width: 300px;
+            background: var(--color-sidepanel);
+            padding: var(--space-md);
+            border-radius: var(--rad-md);
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+            color: var(--color-text-primary);
+            height: auto;
+            box-sizing: border-box;
+
+        }
+
+        .main {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            height: 100%;
+            min-height: 0;
+            overflow-y: auto;
+            background: var(--color-bg);
+            gap: var(--space-md);
+        }
+
+        .button-primary {
+            background: var(--color-btn-primary-bg);
+            color: var(--color-btn-primary-text);
+        }
+
+        .button-secondary {
+            background: var(--color-btn-secondary-bg);
+            color: var(--color-btn-secondary-text);
+        }
+
+        .card-row {
+            display: none;
+            flex-direction: row;
+            flex: 1;
+            min-height: 0;
+            gap: var(--space-md);
+        }
+
+        .card-row.visible {
+            display: flex;
+            flex: 1;
+        }
+
+        .card {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 0;
+            min-height: 0;
+            height: 100%;
+            box-sizing: border-box;
+            background: var(--color-card);
+            border-radius: var(--rad-lg);
+            padding: var(--space-lg);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            gap: var(--rad-sm);
+            overflow: hidden;
+
+        }
+
+        .card-header {
+            display: flex;
+            flex-shrink: 0;
+            align-items: left;
+            justify-content: space-between;
+            font-size: var(--text-size-lg);
+            font-weight: 600;
+            margin-bottom: var(--space-md);
+            gap: var(--space-md);
+        }
+
+        #manualRowsContainer {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            padding: var(--rad-md);
+            gap: var(--space-sm);
+            min-height: 0;
+        }
+
+        .card-body {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+            flex-direction: column;
+            margin-bottom: var(--space-md);
+            gap: var(--space-md);
+            overflow: auto;
+        }
+
+        .card-footer {
+            text-align: right;
+            margin-bottom: var(--space-sm);
+        }
+
+        .card-body textarea {
+            background: var(--color-bg);
+            display: block;
+            flex: 1;
+            height: 100%;
+            min-height: 0;
+            resize: none;
+            box-sizing: border-box;
+            border: 1px solid var(--color-border);
+            color: var(--color-text-primary);
+            border-radius: var(--rad-sm);
+            padding: var(--space-sm);
+            font-size: var(--text-size-md);
+            overflow: auto;
+        }
+
+        .entry-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xs);
+            padding: var(--space-xs);
+            border: 1px solid transparent;
+            border-radius: var(--rad-sm);
+        }
+
+        .entry-wrapper.active {
+            background-color: var(--color-surface);
+        }
+
+        .entry-row {
+            display: flex;
+            gap: var(--space-sm);
+            align-items: flex-start;
+        }
+
+        .entry-row.dragging {
+            opacity: 0.6;
+            border: 1px dashed var(--color-highlight-green);
+        }
+
+        .entry-main {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            gap: var(--space-sm);
+        }
+
+        .entry-inputs {
+            display: flex;
+            flex: 1;
+            gap: var(--space-sm);
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .entry-inputs input {
+            flex: 1 1 150px;
+            /* allows wrapping, sets a decent min width */
+            min-width: 100px;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .entry-controls {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Permanent New Item row styling */
+        .entry-wrapper.new-item {
+            background: var(--color-surface);
+            border: 1px dashed var(--color-border);
+            border-radius: var(--rad-sm);
+            padding: var(--space-sm);
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            box-shadow: 0 8px 14px rgba(0, 0, 0, 0.12);
+        }
+
+        .entry-wrapper.new-item .entry-inputs input {
+            /* ensure full-width wrapping like normal rows */
+            flex: 1 1 150px;
+            min-width: 100px;
+            max-width: 100%;
+        }
+
+        .entry-wrapper.new-item .add-line-btn {
+            font-weight: 600;
+            border: 1px solid var(--color-highlight-green);
+            border-radius: var(--rad-xs);
+            padding: 0.35rem 0.72rem;
+            min-width: 40px;
+            background: rgba(166, 226, 46, 0.14);
+            color: var(--color-highlight-green);
+        }
+
+        .entry-wrapper.new-item .helper {
+            font-size: 0.85em;
+            opacity: 0.8;
+            margin-bottom: .2rem;
+        }
+
+        .entry-wrapper.new-item .error {
+            color: var(--color-warning, #ff6b6b);
+        }
+
+        .entry-wrapper.new-item input.invalid {
+            border-color: var(--color-warning, #ff6b6b);
+            outline: none;
+        }
+
+
+        /* 🔲 Calories input + toggle */
+        .calories-wrapper {
+            position: relative;
+            width: 100px;
+            flex-shrink: 0;
+        }
+
+        .calories-input {
+            width: 100%;
+            padding-right: 1.5rem;
+            /* make space for icon */
+            border: 1px solid var(--color-border);
+            border-radius: var(--rad-xs);
+            background: var(--color-bg);
+            color: var(--color-text-primary);
+        }
+
+        .calories-input:focus {
+            border-color: var(--color-highlight-green);
+        }
+
+        /* ⬇️ Toggle button (dropdown style) */
+        .toggle-calc-btn {
+            position: absolute;
+            right: 0.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--color-text-secondary);
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 0;
+            z-index: 2;
+        }
+
+        .toggle-calc-btn:hover {
+            color: var(--color-highlight-green);
+        }
+
+        /* 🧮 Calculator panel */
+        .calorie-calculator-panel {
+            display: none;
+            flex-direction: column;
+            gap: var(--space-sm);
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--rad-xs);
+            padding: var(--space-sm);
+            font-size: var(--text-size-sm);
+            border-color: var(--color-highlight-green);
+        }
+
+        .calc-expression {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: var(--space-xs);
+            flex-wrap: wrap;
+            justify-content: right;
+
+        }
+
+        .calc-expression input,
+        .calc-expression select {
+            width: 5rem;
+            padding: var(--space-sm);
+            font-size: var(--text-size-sm);
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--rad-xs);
+            color: var(--color-text-primary);
+        }
+
+        .calc-expression span {
+            color: var(--color-text-secondary);
+            font-weight: bold;
+        }
+
+        .calc-result-symbol {
+            font-size: 1.25rem;
+            color: var(--color-highlight-green);
+            margin-left: var(--space-sm);
+        }
+
+        .calc-info {
+            font-size: 1rem;
+            color: var(--color-highlight-blue);
+            margin-right: var(--space-xs);
+        }
+
+        .drag-handle {
+            cursor: grab;
+            user-select: none;
+            padding: var(--space-xs);
+            font-size: var(--text-size-md);
+            display: flex;
+            align-items: center;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .entry-row.dragging {
+            opacity: 0.6;
+            border: 1px dashed var(--color-highlight-green);
+        }
+
+        .entry-row .deleteBtn {
+            background: none;
+            color: var(--color-text-primary);
+            font-size: var(--text-size-md);
+            align-content: center;
+            border: none;
+            cursor: pointer;
+        }
+
+        #entriesCard {
+            background: var(--color-card);
+            color: var(--color-text-primary);
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .date-display {
+            color: var(--color-text-primary);
+            font-size: var(--text-size-lg);
+        }
+
+        #calories {
+            font-weight: bold;
+            font-size: var(--text-size-lg);
+        }
+
+        #jsonViewer {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+            background: var(--color-bg);
+            color: var(--color-text-primary);
+            padding: 1rem;
+            border: none;
+            border-radius: var(--rad-xs);
+            font-size: var(--space-md);
+        }
+
+        #graphSummary {
+            font-size: var(--space-md);
+            color: var(--color-text-primary);
+            text-align: center;
+        }
+
+        .controls-wrapper {
+            display: flex;
+            flex-direction: row;
+            position: sticky;
+            align-items: center;
+            gap: var(--space-sm);
+            max-width: 100%;
+        }
+
+        .date-controls {
+            display: flex;
+            justify-content: right;
+            gap: var(--space-sm);
+        }
+
+        .calendar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            margin-bottom: var(--space-sm);
+        }
+
+        .calendar-nav-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: var(--text-size-lg);
+            font-weight: var(--text-weight-bold);
+            color: var(--color-text-primary);
+        }
+
+        .calendar-nav-row button {
+            background: none;
+            border: none;
+            color: var(--color-text-primary);
+            font-size: var(--text-size-lg);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            margin: 0;
+        }
+
+        .calendar-nav-row button:hover {
+            color: var(--color-primary);
+        }
+
+        .calendar-nav-row span {
+            flex-grow: 1;
+            text-align: center;
+            font-weight: 600;
+            font-size: var(--text-size-lg);
+        }
+
+
+        .calendar-year-header,
+        .calendar-month-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0;
+            margin-bottom: var(--space-xs);
+            font-weight: 600;
+            font-size: var(--text-size-lg);
+            color: var(--color-text-primary);
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .current-time-display {
+            font-size: var(--text-size-sm);
+            color: var(--color-text-primary);
+            margin-left: var(--space-sm);
+            white-space: nowrap;
+        }
+
+        .sidebar-header button {
+            background: none;
+            border: 1px var(--color-highlight-green);
+            color: var(--color-text-inverse);
+            font-size: var(--text-size-md);
+            cursor: pointer;
+            padding: var(--space-xs) var(--space-sm);
+        }
+
+        .sidebar-header button:hover {
+            color: var(--color-primary);
+        }
+
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: .1rem;
+            font-size: var(--text-size-sm);
+            text-align: center;
+            margin-top: 0.5rem;
+            margin-bottom: var(--space-md);
+            color: var(--color-text-primary);
+        }
+
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-auto-rows: 36px;
+            /* uniform row height */
+            gap: 0.1rem;
+            min-height: calc(36px * 6 + 1rem);
+            /* 6 rows max */
+        }
+
+        .calendar-day {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 1 / 1;
+            height: 100%;
+            /* ensure full height */
+            border-radius: 50%;
+            font-size: var(--text-size-md);
+            cursor: pointer;
+            background: transparent;
+            border: 2px dotted var(--color-border);
+            box-sizing: border-box;
+            min-height: 36px;
+            /* ensure non-zero height for empty rows */
+        }
+
+        .calendar-day.today::after {
+            content: "";
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: var(--color-highlight-green);
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .calendar-day.has-entry {
+            background: var(--color-day-card-fill);
+            color: var(--color-text-primary);
+        }
+
+        .calendar-day.selected {
+            border: 2px solid var(--color-highlight-green);
+            color: var(--color-text-primary);
+            z-index: 1;
+        }
+
+        .calendar-year-header button,
+        .calendar-month-header button {
+            all: unset;
+            font-size: var(--text-size-lg);
+            padding: var(--space-xs);
+            color: var(--color-text-primary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .calendar-year-header button:hover,
+        .calendar-month-header button:hover {
+            color: var(--color-primary);
+        }
+
+
+        .calendar-compass-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: var(--color-highlight-green);
+            border-radius: 50%;
+            margin-left: 0.3rem;
+            margin-right: 0.3rem;
+            vertical-align: middle;
+            visibility: hidden;
+        }
+
+        .date-controls button {
+            min-width: 80px;
+            background: var(--color-btn-secondary-bg);
+        }
+
+        .date-info {
+            text-align: center;
+            font-size: var(--text-size-lg);
+        }
+
+        /* Hide the file input itself */
+        #importFile {
+            display: none;
+        }
+
+        .menu-toggle {
+            margin-left: var(--space-sm);
+            display: flex;
+            align-items: center;
+        }
+
+        .switch-label {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-size: var(--text-size-md);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .switch-label input[type="checkbox"] {
+            display: none;
+        }
+
+        .switch-label .slider {
+            width: 32px;
+            height: 16px;
+            background-color: var(--color-bg);
+            border-radius: var(--rad-lg);
+            position: relative;
+            transition: background-color 0.2s ease;
+        }
+
+        .switch-label .slider::before {
+            content: "";
+            position: absolute;
+            left: 2px;
+            top: 2px;
+            width: 12px;
+            height: 12px;
+            background-color: var(--color-btn-secondary-bg);
+            border-radius: 50%;
+            transition: transform 0.2s ease;
+        }
+
+        .switch-label input[type="checkbox"]:checked+.slider {
+            background-color: var(--color-primary);
+        }
+
+        .switch-label input[type="checkbox"]:checked+.slider::before {
+            transform: translateX(16px);
+        }
+
+        .graph-controls button {
+            padding: 0.3rem 0.8rem;
+            font-size: var(--text-size-md);
+            margin: 0 0.3rem;
+        }
+
+        #control-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #control-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #control-scroll::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+            /* adjust color as needed */
+            border-radius: var(--rad-sm);
+        }
+
+        #control-scroll::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Hide number input spinners (Chrome, Safari, Edge) */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Hide number input spinners (Firefox) */
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .tooltip {
+            position: fixed;
+            z-index: 9999;
+            background: var(--color-surface);
+            color: var(--color-text-secondary);
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--rad-sm);
+            font-size: var(--text-size-sm);
+            max-width: 250px;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(-0.5rem);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.25);
+        }
+
+        .tooltip.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        /* Toast — move to top, above UI, less chance of accidental clicks */
+        #toast {
+            position: fixed;
+            left: 50%;
+            top: 12px;
+            transform: translateX(-50%);
+            z-index: 9999;
+            background: var(--color-surface);
+            color: var(--color-text-primary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--rad-sm);
+            padding: 0.75rem 1rem;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, .35);
+            font-size: var(--text-size-md);
+            display: none;
+            gap: .75rem;
+            pointer-events: auto;
+        }
+
+        #toast .actions {
+            display: inline-flex;
+            gap: .5rem;
+            margin-left: .75rem;
+        }
+
+        #toast button {
+            background: none;
+            border: none;
+            color: var(--color-highlight-green);
+            cursor: pointer;
+            font-size: var(--text-size-md);
+            padding: 0;
+        }
+
+        body {
+            background:
+                radial-gradient(1200px 500px at -10% -10%, rgba(102, 217, 239, 0.09), transparent 60%),
+                radial-gradient(900px 500px at 110% -20%, rgba(166, 226, 46, 0.07), transparent 60%),
+                linear-gradient(180deg, #191b20, #1b1d22 45%, #16181d);
+        }
+
+        button {
+            transition: filter 0.15s ease, transform 0.15s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+
+        input,
+        textarea,
+        select {
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        input:focus-visible,
+        textarea:focus-visible,
+        select:focus-visible,
+        button:focus-visible {
+            outline: 2px solid var(--color-secondary);
+            outline-offset: 2px;
+            box-shadow: 0 0 0 3px rgba(102, 217, 239, 0.2);
+        }
+
+        .page {
+            min-height: calc(100dvh - var(--menu-height));
+            max-width: 1460px;
+            margin: 0 auto;
+        }
+
+        .menu-bar {
+            background: rgba(28, 30, 36, 0.88);
+            backdrop-filter: blur(12px);
+        }
+
+        .menu-brand {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+            margin-right: var(--space-sm);
+        }
+
+        .menu-brand-title {
+            font-size: 0.92rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: #f1f7ff;
+            text-transform: uppercase;
+        }
+
+        .menu-brand-subtitle {
+            font-size: 0.72rem;
+            color: #9bb0c9;
+            letter-spacing: 0.02em;
+        }
+
+        .card {
+            background: linear-gradient(180deg, rgba(50, 53, 62, 0.94), rgba(41, 43, 52, 0.94));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 18px 30px rgba(0, 0, 0, 0.22);
+        }
+
+        @media (hover: hover) {
+            .card {
+                transition: transform 0.18s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            }
+
+            .card:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 20px 36px rgba(0, 0, 0, 0.28);
+                border-color: rgba(255, 255, 255, 0.14);
+            }
+        }
+
+        .section-heading {
+            display: flex;
+            flex-direction: column;
+            gap: 0.18rem;
+            min-width: 0;
+        }
+
+        .section-kicker {
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #9fb5cc;
+        }
+
+        .section-title {
+            font-size: 1.03rem;
+            font-weight: 700;
+            color: #f2f7ff;
+            line-height: 1.15;
+        }
+
+        .section-subtitle {
+            font-size: 0.8rem;
+            color: var(--color-text-secondary);
+        }
+
+        #entriesCard .card-header {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            padding-bottom: 0.35rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+        }
+
+        .entry-nav-left {
+            justify-self: start;
+        }
+
+        .entry-nav-right {
+            justify-self: end;
+        }
+
+        .date-display {
+            text-align: center;
+            justify-self: center;
+        }
+
+        .date-label {
+            display: block;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: #9fb5cc;
+            font-weight: 700;
+        }
+
+        .controls-wrapper {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+        }
+
+        .controls-spacer {
+            min-width: 1px;
+        }
+
+        .entry-mode-toggle {
+            justify-self: center;
+            display: inline-flex;
+            align-items: center;
+            background: rgba(18, 20, 25, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 999px;
+            padding: 0.2rem;
+            gap: 0.2rem;
+        }
+
+        .entry-mode-toggle label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            font-size: 0.88rem;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+        }
+
+        .entry-mode-toggle label:has(input[type="radio"]:checked) {
+            background: rgba(166, 226, 46, 0.2);
+            color: #ebffd4;
+        }
+
+        #quickAddBtn {
+            justify-self: end;
+        }
+
+        .quick-action-btn {
+            background: linear-gradient(135deg, #7be445, #55cc8c);
+            color: #0c160b;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: 0.4rem 0.9rem;
+            border: none;
+            letter-spacing: 0.01em;
+            box-shadow: 0 6px 16px rgba(85, 204, 140, 0.28);
+        }
+
+        .summary-strip {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: var(--space-sm);
+            align-items: center;
+            background: rgba(18, 20, 26, 0.68);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 0.45rem 0.55rem;
+            margin-bottom: var(--space-sm);
+        }
+
+        .summary-main {
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+        }
+
+        .summary-label,
+        .metric-label {
+            font-size: 0.72rem;
+            color: #9fb5cc;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 700;
+        }
+
+        .summary-value,
+        .metric-value {
+            font-size: 1.2rem;
+            color: #ebffd4;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .summary-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 30px;
+            padding: 0.2rem 0.55rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: #dce8f7;
+            font-size: 0.78rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .nutrition-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: var(--space-sm);
+        }
+
+        .nutrient-item,
+        .graph-stat {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            min-height: 92px;
+            padding: 0.9rem 1rem;
+            border-radius: 14px;
+            background: linear-gradient(180deg, rgba(18, 20, 25, 0.92), rgba(28, 31, 39, 0.9));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+
+        .nutrient-item.is-primary {
+            background: linear-gradient(180deg, rgba(123, 228, 69, 0.18), rgba(40, 54, 28, 0.88));
+            border-color: rgba(166, 226, 46, 0.3);
+        }
+
+        .metric-value.is-pending {
+            font-size: 1rem;
+            color: #d6dde8;
+        }
+
+        .metric-meta {
+            font-size: 0.8rem;
+            color: var(--color-text-secondary);
+        }
+
+        .nutrition-note {
+            margin-top: var(--space-sm);
+            padding: 0.8rem 0.9rem;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px dashed rgba(255, 255, 255, 0.12);
+            color: #b8c6d8;
+            font-size: 0.82rem;
+            line-height: 1.35;
+        }
+
+        .graph-controls {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem;
+            border-radius: 999px;
+            background: rgba(15, 18, 24, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .graph-range-pill {
+            display: inline-flex;
+            align-items: center;
+            min-height: 34px;
+            padding: 0 0.8rem;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #e6f0fb;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        #graphSummary {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: var(--space-sm);
+            margin-top: var(--space-sm);
+            text-align: left;
+        }
+
+        .graph-stat {
+            min-height: 78px;
+        }
+
+        .graph-stat .metric-value {
+            font-size: 1.15rem;
+            color: #f4f8ff;
+        }
+
+        .entry-row .deleteBtn {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--color-text-primary);
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            width: 32px;
+            height: 32px;
+            border-radius: var(--rad-xs);
+        }
+
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            left: 0.5rem;
+            right: 0.5rem;
+            bottom: 0.55rem;
+            z-index: 1200;
+            background: rgba(20, 22, 29, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            padding: 0.35rem;
+            gap: 0.35rem;
+            grid-template-columns: repeat(5, 1fr);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        }
+
+        .mobile-nav button {
+            background: transparent;
+            color: #d5deea;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            padding: 0.45rem 0.2rem;
+            font-size: 0.73rem;
+            font-weight: 600;
+            min-height: 40px;
+            line-height: 1.05;
+        }
+
+        .mobile-nav button.active {
+            background: rgba(166, 226, 46, 0.2);
+            color: #eaffcd;
+            border-color: rgba(166, 226, 46, 0.45);
+        }
+
+        .sidebar-panel {
+            display: none;
+        }
+
+        .picker-trigger,
+        .calendar-summary-trigger {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 34px;
+            padding: 0.3rem 0.55rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #eef5ff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            overflow: hidden;
+        }
+
+        .picker-trigger select,
+        .calendar-summary-trigger select {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .calendar-hero {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-sm);
+        }
+
+        .calendar-hero-title {
+            font-size: 1.02rem;
+            font-weight: 700;
+            color: #f4f7fd;
+            line-height: 1.1;
+        }
+
+        .calendar-summary-trigger:hover {
+            border-color: rgba(166, 226, 46, 0.35);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        #manualRowsContainer {
+            background: rgba(18, 20, 26, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+
+        .entry-wrapper:not(.new-item) .drag-handle,
+        .entry-wrapper:not(.new-item) .entry-controls {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.16s ease;
+        }
+
+        .entry-wrapper:not(.new-item):hover .drag-handle,
+        .entry-wrapper:not(.new-item):hover .entry-controls,
+        .entry-wrapper:not(.new-item):focus-within .drag-handle,
+        .entry-wrapper:not(.new-item):focus-within .entry-controls {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .entry-mode-toggle.compact {
+            justify-self: auto;
+        }
+
+        .summary-strip .entry-mode-toggle {
+            justify-self: end;
+        }
+
+        #jsonError {
+            color: #ff8f8f;
+            font-size: 0.86rem;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 900px) {
+            :root {
+                --menu-height: 48px;
+                --space-xs: 0.2rem;
+                --space-sm: 0.45rem;
+                --space-md: 0.75rem;
+                --space-lg: 1.1rem;
+                --text-size-lg: 1.4rem;
+            }
+
+            .menu-bar {
+                height: auto;
+                min-height: var(--menu-height);
+                padding: var(--space-sm);
+                gap: var(--space-sm);
+                flex-wrap: wrap;
+            }
+
+            .page {
+                flex-direction: column;
+                height: auto;
+                padding: var(--space-sm);
+                padding-bottom: 4.2rem;
+            }
+
+            .main {
+                order: 1;
+                overflow: visible;
+            }
+
+            .sidebar {
+                order: 2;
+                position: static;
+                width: 100%;
+            }
+
+            .card-row,
+            .card-row.visible {
+                flex-direction: column;
+                flex: 0 0 auto;
+            }
+
+            .mobile-nav {
+                display: grid;
+            }
+
+            #graphSummary,
+            .nutrition-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .entry-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .entry-controls {
+                align-self: flex-end;
+            }
+
+            .entry-inputs input,
+            .entry-wrapper.new-item .entry-inputs input,
+            .calories-wrapper {
+                width: 100%;
+                min-width: 100%;
+                flex: 1 1 100%;
+            }
+
+            .summary-strip {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar-panel {
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="menu-bar">
+        <div class="menu-brand">
+            <span class="menu-brand-title">Trackit</span>
+            <span class="menu-brand-subtitle">Log Fast • Learn Patterns</span>
+        </div>
+        <div class="menu">
+            <button class="menu-button">File ▾</button>
+
+            <div class="dropdown">
+                <label for="importFile" class="dropdown-item">Import Data</label>
+                <input type="file" id="importFile" accept="application/json" onchange="importData(event)" />
+                <button class="dropdown-item" onclick="exportData()">Export Data</button>
+                <button class="dropdown-item" onclick="openLocalFile()">Open…</button>
+                <button class="dropdown-item" onclick="saveToLocalFile()">Save</button>
+                <button class="dropdown-item" onclick="saveToLocalFileAs()">Save As…</button>
+            </div>
+        </div>
+
+        <div class="menu-toggle">
+            <label class="switch-label">
+                <input type="checkbox" id="toggleEntriesSwitch" data-toggle-target="entriesCard" checked />
+                <span class="slider"></span> Food Entries
+            </label>
+        </div>
+
+        <div class="menu-toggle">
+            <label class="switch-label">
+                <input type="checkbox" id="toggleNutritionSwitch" data-toggle-target="nutritionCard" />
+                <span class="slider"></span> Nutrition
+            </label>
+        </div>
+
+        <div class="menu-toggle">
+            <label class="switch-label">
+                <input type="checkbox" id="toggleGraphSwitch" data-toggle-target="graphCard" />
+                <span class="slider"></span> Graph
+            </label>
+        </div>
+
+        <div class="menu-toggle">
+            <label class="switch-label">
+                <input type="checkbox" id="toggleJsonViewerSwitch" data-toggle-target="jsonViewerCard" />
+                <span class="slider"></span> Raw JSON
+            </label>
+        </div>
+    </nav>
+
+    <div class="page">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div id="current-time" class="current-time-display"></div>
+                <div class="date-controls">
+                    <button id="todayButton" onclick="goToToday()">Today</button>
+                </div>
+            </div>
+            <div class="calendar-hero">
+                <label class="calendar-summary-trigger" aria-label="Select month">
+                    <span class="calendar-hero-title" id="monthTriggerLabel">July</span>
+                    <select id="monthPicker"></select>
+                </label>
+                <label class="calendar-summary-trigger" aria-label="Select year">
+                    <span class="calendar-hero-title" id="yearTriggerLabel">2025</span>
+                    <select id="yearPicker"></select>
+                </label>
+                <span class="calendar-hero-title" id="calendarMonthHeading" style="display:none;">July 2025</span>
+            </div>
+            <hr>
+            <div class="calendar-nav">
+                <div class="calendar-nav-row calendar-year-row">
+                    <button id="yearBackBtn" onclick="changeCalendarYear(-1)">
+                        ⟨<span class="calendar-compass-dot"></span>
+                    </button>
+                    <span id="calendarYearLabel">2025</span>
+                    <button id="yearForwardBtn" onclick="changeCalendarYear(+1)">
+                        <span class="calendar-compass-dot"></span>⟩
+                    </button>
+                </div>
+                <div class="calendar-nav-row calendar-month-row">
+                    <button id="monthBackBtn" onclick="changeCalendarMonth(-1)">
+                        ⟨<span class="calendar-compass-dot"></span>
+                    </button>
+                    <span id="calendarMonthLabel">July</span>
+                    <button id="monthForwardBtn" onclick="changeCalendarMonth(+1)">
+                        <span class="calendar-compass-dot"></span>⟩
+                    </button>
+                </div>
+            </div>
+            <div class="calendar-weekdays">
+                <div>Sun</div>
+                <div>Mon</div>
+                <div>Tue</div>
+                <div>Wed</div>
+                <div>Thu</div>
+                <div>Fri</div>
+                <div>Sat</div>
+            </div>
+            <div class="calendar" id="calendarContainer"></div>
+        </aside>
+        <main class="main">
+            <div class="card-row" id="topRow">
+                <div class="card" id="entriesCard">
+                    <div class="card-header">
+                        <div class="date-controls entry-nav-left">
+                            <button onclick="changeDate(-1)">Previous</button>
+                        </div>
+                        <div class="date-display">
+                            <span class="date-label">Selected Day</span>
+                            <span id="dateDisplay"></span>
+                        </div>
+                        <div class="date-controls entry-nav-right">
+                            <button onclick="changeDate(1)">Next</button>
+                        </div>
+                    </div>
+                    <div class="controls-wrapper">
+                        <div class="controls-spacer" aria-hidden="true"></div>
+                        <div class="controls-spacer" aria-hidden="true"></div>
+                        <button id="quickAddBtn" class="quick-action-btn" type="button">Add</button>
+                    </div>
+                    <div class="summary-strip" aria-live="polite">
+                        <div class="summary-main">
+                            <span class="summary-label">Daily Total</span>
+                            <span class="summary-value" id="dailyCaloriesValue">0 kcal</span>
+                        </div>
+                        <span class="summary-chip" id="entryCountChip">0 entries</span>
+                        <div class="entry-mode-toggle compact">
+                            <label><input type="radio" name="entryMode" value="manual" checked> Manual</label>
+                            <label><input type="radio" name="entryMode" value="json"> JSON</label>
+                        </div>
+                    </div>
+                    <div class="card-body">
+
+                        <!-- Manual Entry Section -->
+                        <div id="manualEntrySection">
+                            <div id="manualRowsContainer">
+                                <div id="newItemRow" class="entry-wrapper"></div>
+                            </div>
+                            <button id="undoDeleteBtn" style="display:none;">Undo Delete</button>
+                        </div>
+
+                        <textarea id="foodInput" style="display: none;"
+                            placeholder='[{ "item": "Orange Juice", "amount": "120ml", "brand": "Tropicana", "calories": 54 }, { "item": "Wrap", "amount": "2", "brand": "Casa Mendosa", "calories": 240 }]'></textarea>
+                        <div id="jsonError" class="error" style="display:none;"></div>
+                    </div>
+                    <div class="card-footer">
+                        <div id="calories">Estimated Calories: 0</div>
+                    </div>
+                </div>
+                <div class="card" id="jsonViewerCard">
+                    <div class="card-header">
+                        <div class="section-heading">
+                            <span class="section-kicker">Data</span>
+                            <span class="section-title">Raw JSON</span>
+                            <span class="section-subtitle">Direct view of the selected day log</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="jsonViewer"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-row" id="bottomRow">
+                <div class="card" id="nutritionCard">
+                    <div class="card-header">
+                        <div class="section-heading">
+                            <span class="section-kicker">Overview</span>
+                            <span class="section-title">Nutrition Summary</span>
+                            <span class="section-subtitle">Macro snapshot for this day</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="nutrition-grid">
+                            <div class="nutrient-item is-primary">
+                                <span class="metric-label">Calories</span>
+                                <span class="metric-value" id="nutritionCaloriesValue">0 kcal</span>
+                                <span class="metric-meta" id="nutritionCaloriesMeta">Tracked from today's entries</span>
+                            </div>
+                            <div class="nutrient-item">
+                                <span class="metric-label">Carbs</span>
+                                <span class="metric-value is-pending" id="nutritionCarbsValue">Not tracked</span>
+                                <span class="metric-meta">Available when macro fields are added</span>
+                            </div>
+                            <div class="nutrient-item">
+                                <span class="metric-label">Protein</span>
+                                <span class="metric-value is-pending" id="nutritionProteinValue">Not tracked</span>
+                                <span class="metric-meta">Use entry extensions for gram values later</span>
+                            </div>
+                            <div class="nutrient-item">
+                                <span class="metric-label">Fat</span>
+                                <span class="metric-value is-pending" id="nutritionFatValue">Not tracked</span>
+                                <span class="metric-meta">Ready for future nutrition expansion</span>
+                            </div>
+                        </div>
+                        <div class="nutrition-note" id="nutritionNote">Calories are live now. Macros are staged for a future entry model expansion.</div>
+                    </div>
+                </div>
+
+                <div class="card" id="graphCard">
+                    <div class="card-header">
+                        <div class="section-heading">
+                            <span class="section-kicker">History</span>
+                            <span class="section-title">Calorie Trends</span>
+                            <span class="section-subtitle">Pattern over the selected range</span>
+                        </div>
+                        <div class="graph-controls">
+                            <span id="dayRangeLabel" class="graph-range-pill">7 Days</span>
+                            <button onclick="adjustDays(-1)">−</button>
+                            <button onclick="adjustDays(1)">+</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="calorieGraph"></canvas>
+                        <div id="graphSummary">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <nav class="mobile-nav" aria-label="Quick Sections">
+            <button type="button" data-mobile-section="entries" class="active">Log</button>
+            <button type="button" data-mobile-section="nutrition">Nutrition</button>
+            <button type="button" data-mobile-section="graph">Graph</button>
+            <button type="button" data-mobile-section="json">JSON</button>
+            <button type="button" data-mobile-section="calendar">Date</button>
+        </nav>
+        <div id="tooltip" class="tooltip" role="tooltip"></div>
+        <div id="toast" style="display:none" role="status" aria-live="polite"></div>
+
+        <script>
+            const tooltipRegistry = {
+                calculation: "Calories per unit ÷ quantity × amount eaten.",
+                amount: "Amount you consumed (e.g. 150g, 2 cups, 1 slice).",
+                brand: "Optional brand or product name for reference.",
+                item: "Name of the food item (e.g. Chicken, Bread).",
+                calories: "Total calories — can be entered directly or calculated.",
+                unit: "The unit shown on the package nutrition label (e.g. 100g, 1 bottle).",
+                basecal: "Calories listed on the label (per unit)."
+            };
+
+            function uid() {
+                return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+            }
+
+            const foodInput = document.getElementById('foodInput');
+            const caloriesDisplay = document.getElementById('calories');
+            const dailyCaloriesValue = document.getElementById('dailyCaloriesValue');
+            const entryCountChip = document.getElementById('entryCountChip');
+            const nutritionCaloriesValue = document.getElementById('nutritionCaloriesValue');
+            const nutritionCaloriesMeta = document.getElementById('nutritionCaloriesMeta');
+            const nutritionNote = document.getElementById('nutritionNote');
+            const monthPicker = document.getElementById('monthPicker');
+            const yearPicker = document.getElementById('yearPicker');
+            const monthTriggerLabel = document.getElementById('monthTriggerLabel');
+            const yearTriggerLabel = document.getElementById('yearTriggerLabel');
+            const calendarMonthHeading = document.getElementById('calendarMonthHeading');
+            const dateDisplay = document.getElementById('dateDisplay');
+            const jsonViewer = document.getElementById('jsonViewer');
+            const jsonError = document.getElementById('jsonError');
+
+            let currentFileHandle = null;
+
+            let currentDate = new Date();
+            let viewedDate = new Date(currentDate); // initially matches selected
+            let logData = JSON.parse(localStorage.getItem('foodLog') || '{}');
+            try { logData = normalizeLogDataShape(logData); } catch { logData = {}; }
+
+            let lastDeletedEntry = null;
+            let lastDeletedDate = null;
+            let lastDeletedIndex = null;
+            let submitPendingNewItem = null;
+
+            let itemSuggestions = new Set();
+            let brandSuggestions = new Set();
+            let amountSuggestions = new Set([
+                'g', 'ml', 'cup', 'cups', 'tbsp', 'tsp', 'serving', 'servings',
+                'bottle', 'can', 'pack', 'piece', 'pieces', 'slice', 'slices',
+                'bowl', 'bowls', 'glass', 'glasses', 'wrap', 'wraps'
+            ]);
+            const itemProfiles = new Map();
+
+            function debounce(fn, wait = 300) {
+                let timer = null;
+                return (...args) => {
+                    if (timer) clearTimeout(timer);
+                    timer = setTimeout(() => fn(...args), wait);
+                };
+            }
+
+            function isDateKey(key) {
+                return /^\d{4}-\d{2}-\d{2}$/.test(String(key || ''));
+            }
+
+            function normalizeLogDataShape(raw) {
+                if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+                    throw new Error('Log data must be a date-keyed object.');
+                }
+
+                const normalized = {};
+                for (const [key, value] of Object.entries(raw)) {
+                    if (!isDateKey(key)) continue;
+                    const record = value && typeof value === 'object' ? value : {};
+                    let entries = [];
+
+                    if (Array.isArray(record.entry)) {
+                        entries = record.entry;
+                    } else if (typeof record.entry === 'string') {
+                        try {
+                            const parsed = JSON.parse(record.entry);
+                            if (Array.isArray(parsed)) entries = parsed;
+                        } catch {
+                            entries = [];
+                        }
+                    } else if (Array.isArray(record)) {
+                        entries = record;
+                    }
+
+                    const cleanEntries = entries
+                        .filter(e => e && typeof e === 'object')
+                        .map(e => {
+                            const item = String(e.item ?? '').trim();
+                            const amount = String(e.amount ?? '').trim();
+                            const brandText = String(e.brand ?? '').trim();
+                            const rawCalories = Number(e.calories);
+                            const calories = Number.isFinite(rawCalories) ? rawCalories : 0;
+                            const out = { item, amount, brand: brandText ? brandText : null, calories };
+                            if (e._id) out._id = String(e._id);
+                            return out;
+                        })
+                        .filter(e => e.item || e.amount || e.calories !== 0);
+
+                    const calories = cleanEntries.reduce((sum, e) => sum + (Number(e.calories) || 0), 0);
+                    normalized[key] = {
+                        entry: JSON.stringify(cleanEntries, null, 2),
+                        calories,
+                        timestamp: typeof record.timestamp === 'string' ? record.timestamp : new Date().toISOString()
+                    };
+                }
+                return normalized;
+            }
+
+            function setJsonError(message = '') {
+                if (!jsonError) return;
+                const text = String(message || '').trim();
+                jsonError.textContent = text;
+                jsonError.style.display = text ? 'block' : 'none';
+            }
+
+            async function saveToLocalFile() {
+                try {
+                    if (!window.showSaveFilePicker) {
+                        exportData(); // fallback
+                        showToast('Browser does not support direct save; exported instead.', { duration: 4000 });
+                        return;
+                    }
+                    if (!currentFileHandle) {
+                        currentFileHandle = await window.showSaveFilePicker({
+                            suggestedName: 'food_log.json',
+                            types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
+                        });
+                    }
+                    const writable = await currentFileHandle.createWritable();
+                    await writable.write(new Blob([JSON.stringify(logData, null, 2)], { type: 'application/json' }));
+                    await writable.close();
+                    showToast('Saved to file.', { duration: 2500 });
+                } catch (e) {
+                    console.log(e);
+                }
+            }
+
+            async function saveToLocalFileAs() {
+                currentFileHandle = null;
+                return saveToLocalFile();
+            }
+
+            async function openLocalFile() {
+                try {
+                    if (!window.showOpenFilePicker) {
+                        document.getElementById('importFile').click(); // fallback to your input
+                        return;
+                    }
+                    const [handle] = await window.showOpenFilePicker({
+                        types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
+                        multiple: false
+                    });
+                    currentFileHandle = handle;
+                    const file = await handle.getFile();
+                    const text = await file.text();
+                    const imported = JSON.parse(text);
+                    logData = normalizeLogDataShape(imported);
+                    localStorage.setItem('foodLog', JSON.stringify(logData));
+                    rebuildSuggestionsFromLog();
+                    updateDisplay();
+                    renderCalendar();
+                    showToast('File opened.', { duration: 2500 });
+                } catch (e) {
+                    console.log(e);
+                }
+            }
+
+
+            // --- Toast system ---
+            let _toastTimer = null;
+            function showToast(message, { actions = [], duration = 6000 } = {}) {
+                const el = document.getElementById('toast');
+                el.innerHTML = '';
+                const text = document.createElement('span');
+                text.textContent = message;
+                el.appendChild(text);
+
+                if (actions.length) {
+                    const wrap = document.createElement('span');
+                    wrap.className = 'actions';
+                    actions.forEach(({ label, onClick }) => {
+                        const b = document.createElement('button');
+                        b.textContent = label;
+                        b.addEventListener('click', () => {
+                            hideToast();
+                            onClick?.();
+                        });
+                        wrap.appendChild(b);
+                    });
+                    el.appendChild(wrap);
+                }
+
+                el.style.display = 'inline-flex';
+                if (_toastTimer) clearTimeout(_toastTimer);
+                _toastTimer = setTimeout(hideToast, duration);
+            }
+            function hideToast() {
+                const el = document.getElementById('toast');
+                el.style.display = 'none';
+                if (_toastTimer) { clearTimeout(_toastTimer); _toastTimer = null; }
+            }
+
+            // --- Centralize undo (so both the toast + the header button can call it) ---
+            function undoLastDelete() {
+                if (!lastDeletedEntry || !lastDeletedDate) return;
+
+                let current = [];
+                try { current = JSON.parse(logData[lastDeletedDate]?.entry || '[]'); } catch { }
+
+                // Put back at original index if still valid; else append
+                const idx = Math.min(Math.max(lastDeletedIndex ?? current.length, 0), current.length);
+                current.splice(idx, 0, lastDeletedEntry);
+
+                const caloriesTotal = current.reduce((s, e) => s + (Number(e.calories) || 0), 0);
+                logData[lastDeletedDate] = {
+                    entry: JSON.stringify(current, null, 2),
+                    calories: caloriesTotal,
+                    timestamp: new Date().toISOString()
+                };
+                localStorage.setItem('foodLog', JSON.stringify(logData));
+
+                // reset memory
+                lastDeletedEntry = null;
+                lastDeletedDate = null;
+                lastDeletedIndex = null;
+
+                document.getElementById('undoDeleteBtn').style.display = 'none';
+                updateJsonViewer();
+                rebuildSuggestionsFromLog();
+                loadManualEntriesForDate();
+            }
+
+            function normalizeBrandSuggestion(rawBrand) {
+                const b = String(rawBrand || '').trim();
+                if (!b || b.length > 36 || /^\d/.test(b)) return '';
+                if (/\b(cup|cups|ml|g|tbsp|tsp|serving|bottle|can|pack|piece|slice|bowl|glass|wrap)\b/i.test(b)) return '';
+                const words = b.split(/\s+/).filter(Boolean);
+                return words.length > 4 ? '' : b;
+            }
+
+            function collectAmountUnits(amount) {
+                const text = String(amount || '').toLowerCase();
+                if (!text) return [];
+                const found = [];
+                const unitRegex = /\b(g|kg|ml|l|cup|cups|tbsp|tsp|serving|servings|bottle|bottles|can|cans|pack|packs|piece|pieces|slice|slices|bowl|bowls|glass|glasses|wrap|wraps)\b/g;
+                let m;
+                while ((m = unitRegex.exec(text)) !== null) found.push(m[1]);
+                return found;
+            }
+
+            function normalizeItemKey(value) { return String(value || '').toLowerCase().trim().replace(/\s+/g, ' '); }
+            function normalizeAmountKey(value) { return String(value || '').toLowerCase().trim().replace(/\s+/g, ' '); }
+            function bumpCount(map, key, inc = 1) {
+                if (!map || key === undefined || key === null) return;
+                const k = String(key).trim();
+                if (!k) return;
+                map.set(k, (map.get(k) || 0) + inc);
+            }
+            function pickMostFrequent(map) {
+                if (!map || map.size === 0) return '';
+                return [...map.entries()].sort((a, b) => (b[1] - a[1]) || String(a[0]).localeCompare(String(b[0])))[0]?.[0] || '';
+            }
+            function pickMostFrequentNumber(map) {
+                if (!map || map.size === 0) return null;
+                const best = [...map.entries()].sort((a, b) => (b[1] - a[1]) || (Number(a[0]) - Number(b[0])))[0];
+                return best ? Number(best[0]) : null;
+            }
+            function getItemProfile(itemValue) {
+                const key = normalizeItemKey(itemValue);
+                return key ? itemProfiles.get(key) || null : null;
+            }
+            function resolveProfileCalories(profile, amountValue) {
+                if (!profile) return null;
+                const amountKey = normalizeAmountKey(amountValue);
+                if (amountKey && profile.caloriesByAmount.has(amountKey)) return pickMostFrequentNumber(profile.caloriesByAmount.get(amountKey));
+                return pickMostFrequentNumber(profile.calorieCounts);
+            }
+            function applyItemProfileAutofill(itemInput, amountInput, brandInput, caloriesInput, opts = {}) {
+                const profile = getItemProfile(itemInput?.value);
+                if (!profile) return false;
+                const allowAmountFill = opts.allowAmountFill !== false;
+                let changed = false;
+                if (brandInput && !String(brandInput.value || '').trim()) {
+                    const suggestedBrand = pickMostFrequent(profile.brandCounts);
+                    if (suggestedBrand) { brandInput.value = suggestedBrand; changed = true; }
+                }
+                if (allowAmountFill && amountInput && !String(amountInput.value || '').trim()) {
+                    const suggestedAmount = pickMostFrequent(profile.amountCounts);
+                    if (suggestedAmount) { amountInput.value = suggestedAmount; changed = true; }
+                }
+                if (caloriesInput && !String(caloriesInput.value || '').trim()) {
+                    const suggestedCalories = resolveProfileCalories(profile, amountInput?.value);
+                    if (Number.isFinite(suggestedCalories) && suggestedCalories > 0) {
+                        caloriesInput.value = String(Math.round(suggestedCalories));
+                        changed = true;
+                    }
+                }
+                return changed;
+            }
+            function rankSuggestions(source, query) {
+                const q = String(query || '').toLowerCase().trim();
+                const items = [...new Set((source || []).map(v => String(v || '').trim()).filter(Boolean))];
+                if (!q) return items.sort((a, b) => a.localeCompare(b)).slice(0, 12);
+                return items.map(value => {
+                    const n = value.toLowerCase();
+                    let score = 99;
+                    if (n === q) score = 0;
+                    else if (n.startsWith(q)) score = 1;
+                    else if (n.includes(` ${q}`)) score = 2;
+                    else if (n.includes(q)) score = 3;
+                    return { value, score, len: value.length };
+                }).filter(x => x.score < 99)
+                    .sort((a, b) => (a.score - b.score) || (a.len - b.len) || a.value.localeCompare(b.value))
+                    .slice(0, 12)
+                    .map(x => x.value);
+            }
+            function rebuildSuggestionsFromLog() {
+                itemSuggestions.clear();
+                brandSuggestions.clear();
+                itemProfiles.clear();
+                amountSuggestions = new Set(['g', 'ml', 'cup', 'cups', 'tbsp', 'tsp', 'serving', 'servings', 'bottle', 'can', 'pack', 'piece', 'pieces', 'slice', 'slices', 'bowl', 'bowls', 'glass', 'glasses', 'wrap', 'wraps']);
+                Object.values(logData).forEach(({ entry }) => {
+                    try {
+                        const parsed = JSON.parse(entry);
+                        if (Array.isArray(parsed)) {
+                            parsed.forEach(obj => {
+                                const item = String(obj.item || '').trim();
+                                const amountRaw = String(obj.amount || '').trim();
+                                const caloriesNum = Number(obj.calories);
+                                if (item) itemSuggestions.add(item);
+                                const brand = normalizeBrandSuggestion(obj.brand);
+                                if (brand) brandSuggestions.add(brand);
+                                collectAmountUnits(obj.amount).forEach(u => amountSuggestions.add(u));
+                                if (!item) return;
+                                const itemKey = normalizeItemKey(item);
+                                if (!itemProfiles.has(itemKey)) itemProfiles.set(itemKey, { itemCounts: new Map(), brandCounts: new Map(), amountCounts: new Map(), calorieCounts: new Map(), caloriesByAmount: new Map() });
+                                const profile = itemProfiles.get(itemKey);
+                                bumpCount(profile.itemCounts, item);
+                                bumpCount(profile.brandCounts, brand);
+                                bumpCount(profile.amountCounts, amountRaw);
+                                if (Number.isFinite(caloriesNum) && caloriesNum > 0) {
+                                    bumpCount(profile.calorieCounts, Math.round(caloriesNum));
+                                    const amountKey = normalizeAmountKey(amountRaw);
+                                    if (amountKey) {
+                                        if (!profile.caloriesByAmount.has(amountKey)) profile.caloriesByAmount.set(amountKey, new Map());
+                                        bumpCount(profile.caloriesByAmount.get(amountKey), Math.round(caloriesNum));
+                                    }
+                                }
+                            });
+                        }
+                    } catch (e) { }
+                });
+            }
+
+            function attachSuggestions(input, suggestionSet, listKey = 'generic') {
+                if (!input) return;
+                const datalistId = `suggestions-${listKey}`;
+                let datalist = document.getElementById(datalistId);
+                if (!datalist) {
+                    datalist = document.createElement('datalist');
+                    datalist.id = datalistId;
+                    document.body.appendChild(datalist);
+                }
+                input.setAttribute('list', datalistId);
+
+                function populate(val) {
+                    datalist.innerHTML = '';
+                    const source = Array.isArray(suggestionSet) ? suggestionSet : [...suggestionSet || []];
+                    const matches = rankSuggestions(source, val);
+                    for (const m of matches) {
+                        const opt = document.createElement('option');
+                        opt.value = String(m);
+                        datalist.appendChild(opt);
+                    }
+                }
+
+                input.addEventListener('focus', () => populate(input.value));
+                input.addEventListener('input', () => populate(input.value));
+            }
+
+            function ensureIdsForDate(key) {
+                let arr = [];
+                try { arr = JSON.parse(logData[key]?.entry || '[]'); } catch { }
+
+                if (!Array.isArray(arr)) arr = [];
+
+                let changed = false;
+                arr.forEach(e => {
+                    if (!e._id) { e._id = uid(); changed = true; }
+                });
+
+                if (changed) {
+                    const calories = arr.reduce((s, e) => s + (Number(e.calories) || 0), 0);
+                    logData[key] = {
+                        entry: JSON.stringify(arr, null, 2),
+                        calories,
+                        timestamp: new Date().toISOString()
+                    };
+                    localStorage.setItem('foodLog', JSON.stringify(logData));
+                }
+                return arr;
+            }
+
+            document.querySelector('.menu-button').addEventListener('click', () => {
+                const dropdown = document.querySelector('.dropdown');
+                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+            });
+
+            // Close dropdown if clicked outside
+            window.addEventListener('click', (e) => {
+                const menu = document.querySelector('.menu');
+                if (!menu.contains(e.target)) {
+                    document.querySelector('.dropdown').style.display = 'none';
+                }
+            });
+
+            function getCssVar(name) {
+                return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+            }
+
+            function formatDate(date) {
+                const yyyy = date.getFullYear();
+                const mm = String(date.getMonth() + 1).padStart(2, '0');
+                const dd = String(date.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`; // for storage and lookup
+            }
+
+            function formatDateDisplay(date) {
+                const yyyy = date.getFullYear();
+                const mm = String(date.getMonth() + 1).padStart(2, '0');
+                const dd = String(date.getDate()).padStart(2, '0');
+                return `${yyyy}/${mm}/${dd}`; // → "2025/07/16"
+            }
+
+            function populateCalendarPickers() {
+                if (monthPicker && !monthPicker.options.length) {
+                    const monthNames = Array.from({ length: 12 }, (_, i) => new Date(2000, i, 1).toLocaleString(undefined, { month: 'long' }));
+                    monthNames.forEach((label, index) => {
+                        const opt = document.createElement('option');
+                        opt.value = String(index);
+                        opt.textContent = label;
+                        monthPicker.appendChild(opt);
+                    });
+                }
+                if (yearPicker && !yearPicker.options.length) {
+                    const currentYear = new Date().getFullYear();
+                    for (let year = currentYear + 5; year >= currentYear - 20; year--) {
+                        const opt = document.createElement('option');
+                        opt.value = String(year);
+                        opt.textContent = String(year);
+                        yearPicker.appendChild(opt);
+                    }
+                }
+            }
+
+            function syncCalendarPickerUI() {
+                if (monthPicker) monthPicker.value = String(viewedDate.getMonth());
+                if (yearPicker) yearPicker.value = String(viewedDate.getFullYear());
+                if (monthTriggerLabel) monthTriggerLabel.textContent = viewedDate.toLocaleString(undefined, { month: 'long' });
+                if (yearTriggerLabel) yearTriggerLabel.textContent = String(viewedDate.getFullYear());
+                if (calendarMonthHeading) calendarMonthHeading.textContent = viewedDate.toLocaleString(undefined, { month: 'long', year: 'numeric' });
+            }
+
+            function setViewedMonth(year, monthIndex) {
+                viewedDate = new Date(year, monthIndex, 1);
+                viewedDate.setHours(0, 0, 0, 0);
+                renderCalendar();
+            }
+
+            function setSelectedDate(nextDate, syncViewedMonth = true) {
+                const normalized = new Date(nextDate);
+                normalized.setHours(0, 0, 0, 0);
+                currentDate = normalized;
+                if (syncViewedMonth) {
+                    viewedDate = new Date(normalized.getFullYear(), normalized.getMonth(), 1);
+                    viewedDate.setHours(0, 0, 0, 0);
+                }
+                updateDisplay();
+                renderCalendar();
+            }
+
+            function getEntriesForDateKey(key) {
+                try {
+                    const parsed = JSON.parse(logData[key]?.entry || '[]');
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch {
+                    return [];
+                }
+            }
+
+            function updateEntryHierarchy() {
+                const key = formatDate(currentDate);
+                const entries = getEntriesForDateKey(key);
+                const calories = entries.reduce((sum, e) => sum + (Number(e?.calories) || 0), 0);
+                const mode = document.querySelector('input[name="entryMode"]:checked')?.value || 'manual';
+                caloriesDisplay.textContent = `Estimated Calories: ${calories}`;
+                if (dailyCaloriesValue) dailyCaloriesValue.textContent = `${calories} kcal`;
+                if (entryCountChip) entryCountChip.textContent = `${entries.length} ${entries.length === 1 ? 'entry' : 'entries'}`;
+                if (nutritionCaloriesValue) nutritionCaloriesValue.textContent = `${calories} kcal`;
+                if (nutritionCaloriesMeta) nutritionCaloriesMeta.textContent = `${entries.length} ${entries.length === 1 ? 'logged item' : 'logged items'} on this day`;
+                if (nutritionNote) {
+                    nutritionNote.textContent = entries.length
+                        ? 'Calories are live from your current log. Macro fields can be layered into the same entry model later.'
+                        : 'Start adding entries to populate calories here. Macro fields can be layered in later.';
+                }
+            }
+
+            function updateDisplay() {
+
+                const key = formatDate(currentDate);
+                const today = formatDate(new Date());
+
+                dateDisplay.textContent = formatDateDisplay(currentDate); // for user-facing view
+                foodInput.value = logData[key]?.entry || '';
+                updateEntryHierarchy();
+                setJsonError('');
+                updateJsonViewer();
+
+                // Sync switches
+                ["Graph", "JsonViewer", "Entries", "Nutrition"].forEach(id => {
+                    const card = document.getElementById(`${id}Card`);
+                    const checkbox = document.getElementById(`toggle${id}Switch`);
+                    if (card && checkbox) checkbox.checked = card.style.display !== "none";
+                });
+
+                if (document.querySelector('input[name="entryMode"]:checked')?.value === 'manual') {
+                    loadManualEntriesForDate();
+                }
+            }
+
+            function changeCalendarYear(offset) {
+                setViewedMonth(viewedDate.getFullYear() + offset, viewedDate.getMonth());
+            }
+
+            function changeCalendarMonth(offset) {
+                setViewedMonth(viewedDate.getFullYear(), viewedDate.getMonth() + offset);
+            }
+
+            function changeDate(days) {
+                const next = new Date(currentDate);
+                next.setDate(next.getDate() + days);
+                setSelectedDate(next, true);
+            }
+
+            function goToToday() {
+                setSelectedDate(new Date(), true);
+            }
+
+            function saveCurrentEntry() {
+                const key = formatDate(currentDate);
+                const entry = foodInput.value;
+                const timestamp = new Date().toISOString();
+
+                let parsed = [];
+                try {
+                    parsed = JSON.parse(entry);
+                } catch {
+                    setJsonError('Invalid JSON. Changes are not saved until the JSON is valid.');
+                    return;
+                }
+                if (!Array.isArray(parsed)) {
+                    setJsonError('JSON root must be an array of entries.');
+                    return;
+                }
+                setJsonError('');
+
+                // ensure ids exist after JSON edits
+                parsed.forEach(e => { if (!e._id) e._id = uid(); });
+
+                const calories = parsed.reduce((sum, item) => sum + (Number(item.calories) || 0), 0);
+
+                logData[key] = { entry: JSON.stringify(parsed, null, 2), calories, timestamp };
+                localStorage.setItem('foodLog', JSON.stringify(logData));
+                updateEntryHierarchy();
+                updateJsonViewer();
+
+                // if manual mode is visible, refresh the list
+                const isManual = document.querySelector('input[name="entryMode"]:checked')?.value === 'manual';
+                if (isManual) loadManualEntriesForDate();
+            }
+
+            function persistOrder() {
+                const key = formatDate(currentDate);
+                const wrappers = [...document.querySelectorAll('#manualRowsContainer .entry-wrapper:not(.new-item)')];
+                // read the current array from storage
+                let arr = [];
+                try { arr = JSON.parse(logData[key]?.entry || '[]'); } catch { }
+                // reorder according to DOM
+                const byId = Object.fromEntries(arr.map(e => [e._id, e]));
+                const reordered = wrappers
+                    .map(w => byId[w.dataset.id])
+                    .filter(Boolean);
+                const calories = reordered.reduce((s, e) => s + (Number(e.calories) || 0), 0);
+                logData[key] = { entry: JSON.stringify(reordered, null, 2), calories, timestamp: new Date().toISOString() };
+                localStorage.setItem('foodLog', JSON.stringify(logData));
+                updateJsonViewer();
+                updateEntryHierarchy();
+            }
+
+            function exportData() {
+                const blob = new Blob([JSON.stringify(logData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'food_log_backup.json';
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+
+            function importData(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    try {
+                        const imported = JSON.parse(e.target.result);
+                        logData = normalizeLogDataShape(imported);
+                        localStorage.setItem('foodLog', JSON.stringify(logData));
+                        rebuildSuggestionsFromLog(); // ✅ Add this
+
+                        updateDisplay();
+                    }
+                    catch (err) {
+                        showToast('Invalid file. Import requires a valid Trackit JSON log.', { duration: 4500 });
+                    }
+                    renderCalendar();
+
+                };
+                reader.readAsText(file);
+            }
+
+            function updateJsonViewer() {
+                const key = formatDate(currentDate);
+                const current = logData[key]?.entry || '';
+                jsonViewer.textContent = current;
+
+                // ✅ Try parsing JSON and syncing manual if valid
+                try {
+                    const parsed = JSON.parse(current);
+                    if (Array.isArray(parsed)) {
+                        logData[key].calories = parsed.reduce((sum, e) => sum + (e.calories || 0), 0);
+                        localStorage.setItem('foodLog', JSON.stringify(logData));
+                        loadManualEntriesForDate(); // ✅ sync manual
+                    }
+                } catch { }
+            }
+
+
+            let graphDays = 7;
+
+            function adjustDays(delta) {
+                graphDays = Math.max(1, graphDays + delta);
+                document.getElementById('dayRangeLabel').textContent = `${graphDays} Days`;
+                drawCalorieGraph();
+            }
+
+            function drawCalorieGraph() {
+                const canvas = document.getElementById("calorieGraph");
+                canvas.width = canvas.parentElement.offsetWidth;
+                canvas.height = 200;
+                const ctx = canvas.getContext("2d");
+                const width = canvas.width;
+                const height = canvas.height;
+
+                ctx.clearRect(0, 0, width, height);
+
+                const today = new Date();
+                const dates = [];
+
+                for (let i = graphDays - 1; i >= 0; i--) {
+                    const d = new Date(today);
+                    d.setDate(today.getDate() - i);
+                    dates.push(formatDate(d));
+                }
+
+                const calories = dates.map(d => logData[d]?.calories || 0);
+                const maxCalories = Math.max(...calories, 2000); // Ensure some height
+                const xDenominator = Math.max(graphDays - 1, 1);
+
+                // Draw axes
+                ctx.strokeStyle = getCssVar('--color-graph-label');
+                ctx.beginPath();
+                ctx.moveTo(50, 10);
+                ctx.lineTo(50, height - 30);
+                ctx.lineTo(width - 20, height - 30);
+                ctx.stroke();
+
+                // Plot line
+                ctx.strokeStyle = getCssVar('--color-graph-line');
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                calories.forEach((val, i) => {
+                    const x = 50 + i * ((width - 70) / xDenominator);
+                    const y = height - 30 - (val / maxCalories) * (height - 50);
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+
+                const now = new Date();
+                const localToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const todayKey = formatDate(localToday);
+                const selectedKey = formatDate(currentDate);
+
+                dates.forEach((d, i) => {
+                    const x = 50 + i * ((canvas.width - 70) / xDenominator);
+                    const y = canvas.height - 30 - (calories[i] / maxCalories) * (canvas.height - 50);
+
+                    // Mark today's point with solid blue dot
+                    if (d === todayKey) {
+                        ctx.fillStyle = getCssVar('--color-graph-today');
+                        ctx.beginPath();
+                        ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                        ctx.fill();
+                    }
+
+                    // Outline selected date
+                    if (d === selectedKey) {
+                        ctx.strokeStyle = getCssVar('--color-graph-selected-outline'); ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.arc(x, y, 6, 0, 2 * Math.PI);
+                        ctx.stroke();
+                    }
+                });
+
+                // Draw points
+                ctx.fillStyle = getCssVar('--color-graph-point');
+                calories.forEach((val, i) => {
+                    const x = 50 + i * ((width - 70) / xDenominator);
+                    const y = height - 30 - (val / maxCalories) * (height - 50);
+                    ctx.beginPath();
+                    ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                    ctx.fill();
+                });
+
+                // Draw calorie labels
+                ctx.fillStyle = getCssVar('--color-graph-label');
+                ctx.font = "12px sans-serif";
+                calories.forEach((val, i) => {
+                    const x = 50 + i * ((width - 70) / xDenominator);
+                    const y = height - 30 - (val / maxCalories) * (height - 50);
+                    ctx.fillText(val, x - 10, y - 8);
+                });
+
+                // Draw date labels
+                dates.forEach((d, i) => {
+                    const x = 50 + i * ((width - 70) / xDenominator);
+                    ctx.fillText(d.slice(5), x - 15, height - 10);
+                });
+
+                const max = Math.max(...calories);
+                const min = Math.min(...calories);
+                const avg = Math.round(calories.reduce((a, b) => a + b, 0) / calories.length);
+                document.getElementById("graphSummary").innerHTML = `
+                    <div class="graph-stat">
+                        <span class="metric-label">Average</span>
+                        <span class="metric-value">${avg} cal</span>
+                        <span class="metric-meta">Across the visible range</span>
+                    </div>
+                    <div class="graph-stat">
+                        <span class="metric-label">Highest</span>
+                        <span class="metric-value">${max} cal</span>
+                        <span class="metric-meta">Peak day in this window</span>
+                    </div>
+                    <div class="graph-stat">
+                        <span class="metric-label">Lowest</span>
+                        <span class="metric-value">${min} cal</span>
+                        <span class="metric-meta">Lightest day in this window</span>
+                    </div>`;
+
+            }
+            function renderCalendar() {
+                const container = document.getElementById('calendarContainer');
+                const monthLabel = document.getElementById('calendarMonthLabel');
+                const yearLabel = document.getElementById('calendarYearLabel');
+                container.innerHTML = "";
+
+                const referenceDate = new Date(viewedDate.getFullYear(), viewedDate.getMonth(), 1);
+                referenceDate.setHours(0, 0, 0, 0); // ✅
+
+
+                const year = referenceDate.getFullYear();
+                const month = referenceDate.getMonth();
+                const monthName = referenceDate.toLocaleString('default', { month: 'long' });
+
+                if (monthLabel) monthLabel.textContent = monthName;
+                if (yearLabel) yearLabel.textContent = year;
+                syncCalendarPickerUI();
+
+                const start = new Date(year, month, 1); start.setHours(0, 0, 0, 0); // ✅
+                const end = new Date(year, month + 1, 0); end.setHours(0, 0, 0, 0); // ✅
+                const today = new Date(); today.setHours(0, 0, 0, 0); // ✅
+                const todayKey = formatDate(today);
+                const selectedKey = formatDate(currentDate);
+
+                const startDay = start.getDay(); // Day of the week (0–6)
+                const daysInMonth = end.getDate();
+
+                // Pad with blanks before first day
+                for (let i = 0; i < startDay; i++) {
+                    const blank = document.createElement('div');
+                    container.appendChild(blank);
+                }
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = new Date(year, month, day);
+                    date.setHours(0, 0, 0, 0); // ✅ Normalize each cell
+
+                    const key = formatDate(date);
+                    const div = document.createElement('div');
+                    div.classList.add('calendar-day');
+                    div.textContent = day;
+
+                    if (key === todayKey) div.classList.add('today');
+                    if (key === selectedKey) div.classList.add('selected');
+                    if (logData[key]) div.classList.add('has-entry');
+
+                    div.addEventListener('click', () => {
+                        setSelectedDate(date, true);
+                    });
+
+                    container.appendChild(div);
+                }
+                const todayBtn = document.getElementById('todayButton');
+                todayBtn.disabled = formatDate(currentDate) === todayKey;
+                updateCompassIndicators();
+
+            }
+            function updateCompassIndicators() {
+                syncCalendarPickerUI();
+            }
+
+            function createDot() {
+                const dot = document.createElement("span");
+                dot.classList.add("calendar-compass-dot");
+                return dot;
+            }
+            function updateCurrentTimeDisplay() {
+                const now = new Date();
+                const options = {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    timeZoneName: 'short',
+                };
+                const formatted = now.toLocaleString(undefined, options);
+                document.getElementById('current-time').textContent = formatted;
+            }
+
+            function setupToggle(id, callback = null) {
+                const checkbox = document.getElementById(`toggle${id}Switch`);
+                const card = document.getElementById(`${id.charAt(0).toLowerCase() + id.slice(1)}Card`);
+
+                if (!checkbox || !card) return;
+
+                // Initial visibility setup
+                if (checkbox.checked) {
+                    card.style.removeProperty('display'); // use default CSS
+                } else {
+                    card.style.display = 'none';
+                }
+
+                // Watch for toggle changes
+                checkbox.addEventListener('change', () => {
+                    const visible = checkbox.checked;
+                    if (visible) {
+                        card.style.removeProperty('display');
+                        if (typeof callback === 'function') callback();
+                    } else {
+                        card.style.display = 'none';
+                    }
+
+                    // 🔁 Re-evaluate card-row layout
+                    updateCardRowLayout();
+                });
+            }
+
+            function updateCardRowLayout() {
+                const topRow = document.getElementById('topRow');
+                const bottomRow = document.getElementById('bottomRow');
+
+                // Check if any children inside each row are visible
+                const topVisible = [...topRow.children].some(child => child.style.display !== 'none');
+                const bottomVisible = [...bottomRow.children].some(child => child.style.display !== 'none');
+
+                // Assign layout based on visibility
+                if (topVisible && bottomVisible) {
+                    topRow.className = 'card-row visible';
+                    bottomRow.className = 'card-row visible';
+                } else if (topVisible) {
+                    topRow.className = 'card-row visible';
+                    bottomRow.className = 'card-row'; // hidden
+                } else if (bottomVisible) {
+                    topRow.className = 'card-row'; // hidden
+                    bottomRow.className = 'card-row visible';
+                } else {
+                    // fallback — both hidden
+                    topRow.className = 'card-row';
+                    bottomRow.className = 'card-row';
+                }
+                drawCalorieGraph();
+            }
+
+            function setCardSwitch(id, checked) {
+                const checkbox = document.getElementById(`toggle${id}Switch`);
+                if (!checkbox) return;
+                if (checkbox.checked === checked) return;
+                checkbox.checked = checked;
+                checkbox.dispatchEvent(new Event('change'));
+            }
+
+            function setMobileSection(section) {
+                if (section === 'calendar') {
+                    document.querySelector('.sidebar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    return;
+                }
+
+                const map = {
+                    entries: 'Entries',
+                    nutrition: 'Nutrition',
+                    graph: 'Graph',
+                    json: 'JsonViewer'
+                };
+                const active = map[section] || 'Entries';
+                ['Entries', 'Nutrition', 'Graph', 'JsonViewer'].forEach(id => setCardSwitch(id, id === active));
+                document.querySelectorAll('.mobile-nav button').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.mobileSection === section);
+                });
+            }
+
+            // Update every 60 seconds
+            updateCurrentTimeDisplay();
+            setInterval(updateCurrentTimeDisplay, 60000);
+
+            foodInput.addEventListener('input', saveCurrentEntry);
+            updateDisplay();
+            renderCalendar();
+
+            window.addEventListener("resize", () => {
+                if (document.getElementById("graphCard")?.style.display !== "none") {
+                    drawCalorieGraph();
+                }
+            });
+
+            document.addEventListener('DOMContentLoaded', () => {
+                rebuildSuggestionsFromLog(); // ✅ Add this first
+                setupToggle('Entries');
+                setupToggle('Nutrition');
+                setupToggle('Graph', drawCalorieGraph);
+                populateCalendarPickers();
+                setupToggle('JsonViewer', updateJsonViewer);
+                monthPicker?.addEventListener('change', () => {
+                    if (!monthPicker.value) return;
+                    const month = Number(monthPicker.value);
+                    if (!Number.isFinite(month)) return;
+                    setViewedMonth(viewedDate.getFullYear(), month);
+                });
+                yearPicker?.addEventListener('change', () => {
+                    if (!yearPicker.value) return;
+                    const year = Number(yearPicker.value);
+                    if (!Number.isFinite(year)) return;
+                    setViewedMonth(year, viewedDate.getMonth());
+                });
+                if (document.getElementById('graphCard')?.style.display !== 'none') {
+                    drawCalorieGraph();
+                }
+                updateCardRowLayout(); // 💡 Call after initial toggle setup
+            });
+
+            const quickAddBtn = document.getElementById('quickAddBtn');
+            quickAddBtn?.addEventListener('click', () => {
+                const manualRadio = document.querySelector('input[name="entryMode"][value="manual"]');
+                if (manualRadio && !manualRadio.checked) {
+                    manualRadio.checked = true;
+                    manualRadio.dispatchEvent(new Event('change'));
+                }
+                if (typeof submitPendingNewItem === 'function') {
+                    submitPendingNewItem();
+                    return;
+                }
+                const firstItem = document.querySelector('#newItemRow input[placeholder="Item"]');
+                firstItem?.focus();
+                firstItem?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+            document.querySelectorAll('.mobile-nav button').forEach(btn => {
+                btn.addEventListener('click', () => setMobileSection(btn.dataset.mobileSection));
+            });
+
+            document.getElementById('undoDeleteBtn').addEventListener('click', undoLastDelete);
+
+            // Entry Mode toggle (manual ↔ JSON)
+            document.querySelectorAll('input[name="entryMode"]').forEach(input => {
+                input.addEventListener('change', () => {
+                    const manual = document.getElementById('manualEntrySection');
+                    const raw = document.getElementById('foodInput');
+                    const isManual = input.value === 'manual';
+
+                    manual.style.display = isManual ? 'block' : 'none';
+                    raw.style.display = isManual ? 'none' : 'block';
+                    updateEntryHierarchy();
+
+                    if (isManual) loadManualEntriesForDate();
+                });
+            });
+
+            function renderNewItemInputRow() {
+                const listContainer = document.getElementById('manualRowsContainer');
+                if (!listContainer) return;
+
+                let container = document.getElementById('newItemRow');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'newItemRow';
+                    container.className = 'entry-wrapper';
+                    listContainer.prepend(container);
+                }
+                container.innerHTML = '';
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'entry-wrapper new-item';
+
+                const row = document.createElement('div');
+                row.className = 'entry-row';
+
+                // Left grip space keeps alignment with normal rows (optional)
+                const handle = document.createElement('div');
+                handle.className = 'drag-handle';
+                handle.setAttribute('aria-hidden', 'true');
+                handle.textContent = '⋮⋮';
+
+                const main = document.createElement('div');
+                main.className = 'entry-main';
+
+                const inputsDiv = document.createElement('div');
+                inputsDiv.className = 'entry-inputs';
+
+                const itemInput = document.createElement('input');
+                itemInput.placeholder = 'Item';
+                attachSuggestions(itemInput, itemSuggestions, 'item');
+
+                const amountInput = document.createElement('input');
+                amountInput.placeholder = 'Amount';
+                attachSuggestions(amountInput, amountSuggestions, 'amount');
+
+                const brandInput = document.createElement('input');
+                brandInput.placeholder = 'Brand';
+                attachSuggestions(brandInput, brandSuggestions, 'brand');
+
+                const calWrap = document.createElement('div');
+                calWrap.className = 'calories-wrapper';
+                const calInput = document.createElement('input');
+                calInput.className = 'calories-input';
+                calInput.placeholder = 'Calories';
+                calInput.type = 'number';
+                calWrap.appendChild(calInput);
+
+                const addBtn = document.createElement('button');
+                addBtn.className = 'add-line-btn';
+                addBtn.type = 'button';
+                addBtn.textContent = '+';
+
+                const helper = document.createElement('div');
+                helper.className = 'helper';
+                helper.innerHTML = `
+    <span class="msg-default">Add a new item.</span>
+    <span class="msg-error error" style="display:none"></span>
+  `;
+
+                function validate(showErrors = false) {
+                    const invalid = [];
+                    const item = itemInput.value.trim();
+                    const amount = amountInput.value.trim();
+                    const c = calInput.value.trim();
+                    const calNum = Number(c);
+
+                    itemInput.classList.toggle('invalid', !item);
+                    amountInput.classList.toggle('invalid', !amount);
+                    calInput.classList.toggle('invalid', !c || !Number.isFinite(calNum));
+
+                    if (!item) invalid.push('Item');
+                    if (!amount) invalid.push('Amount');
+                    if (!c || !Number.isFinite(calNum)) invalid.push('Calories');
+
+                    if (showErrors && invalid.length) {
+                        helper.querySelector('.msg-default').style.display = 'none';
+                        const err = helper.querySelector('.msg-error');
+                        err.textContent = `Please fix: ${invalid.join(', ')}.`;
+                        err.style.display = 'inline';
+                    } else {
+                        helper.querySelector('.msg-default').style.display = 'inline';
+                        helper.querySelector('.msg-error').style.display = 'none';
+                    }
+
+                    return invalid.length === 0;
+                }
+
+                // No disabled button — we validate on click and show inline message
+                function submitCurrentLine() {
+                    if (!validate(true)) return;
+
+                    const newEntry = {
+                        item: itemInput.value.trim(),
+                        amount: amountInput.value.trim(),
+                        brand: brandInput.value.trim(),
+                        calories: Number(calInput.value)
+                    };
+                    appendManualEntry(newEntry);
+
+                    // clear inputs + default message
+                    itemInput.value = '';
+                    amountInput.value = '';
+                    brandInput.value = '';
+                    calInput.value = '';
+                    validate(false);
+
+                    showToast('Item saved.', { duration: 3000 });
+                }
+
+                submitPendingNewItem = submitCurrentLine;
+                addBtn.addEventListener('click', submitCurrentLine);
+
+                // Light live validation (no blocking)
+                [itemInput, amountInput, calInput].forEach(el => el.addEventListener('input', () => validate(false)));
+                itemInput.addEventListener('change', () => {
+                    if (applyItemProfileAutofill(itemInput, amountInput, brandInput, calInput)) validate(false);
+                });
+                amountInput.addEventListener('change', () => {
+                    if (applyItemProfileAutofill(itemInput, amountInput, brandInput, calInput, { allowAmountFill: false })) validate(false);
+                });
+
+                main.appendChild(helper);
+                inputsDiv.append(itemInput, amountInput, brandInput, calWrap, addBtn);
+                main.appendChild(inputsDiv);
+                row.append(handle, main);
+                wrapper.appendChild(row);
+                container.appendChild(wrapper);
+            }
+
+            function appendManualEntry(entry) {
+                // Load current
+                const key = formatDate(currentDate);
+                let current = [];
+                try {
+                    current = JSON.parse(logData[key]?.entry || '[]');
+                } catch { }
+                const withId = { _id: uid(), ...entry };
+
+                current.unshift(withId);                        // ✅ store the id’d object
+                const calories = current.reduce((sum, e) => sum + (e.calories || 0), 0);
+
+                logData[key] = {
+                    entry: JSON.stringify(current, null, 2),
+                    calories,
+                    timestamp: new Date().toISOString()
+                };
+                localStorage.setItem('foodLog', JSON.stringify(logData));
+                updateJsonViewer();
+                updateEntryHierarchy();
+                rebuildSuggestionsFromLog();
+                loadManualEntriesForDate(); // re-render list
+            }
+
+            function addManualRow(data = {}, autoScroll = true) {
+                const container = document.getElementById('manualRowsContainer');
+
+                // === WRAPPER ===
+                const wrapper = document.createElement('div');
+                wrapper.className = 'entry-wrapper';
+                wrapper.dataset.id = data._id || '';
+
+                // === ROW ===
+                const row = document.createElement('div');
+                row.className = 'entry-row';
+
+                // === Drag Handle ===
+                const handle = document.createElement('div');
+                handle.className = 'drag-handle';
+                handle.textContent = '⋮⋮';
+                handle.setAttribute('draggable', 'true');
+                handle.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', '');
+                    row.classList.add('dragging');
+                });
+                handle.addEventListener('dragend', () => row.classList.remove('dragging'));
+                row.appendChild(handle);
+
+                // === Main Content Column ===
+                const main = document.createElement('div');
+                main.className = 'entry-main';
+
+                const inputsDiv = document.createElement('div');
+                inputsDiv.className = 'entry-inputs';
+
+                const itemInput = document.createElement('input');
+                itemInput.type = 'text';
+                itemInput.placeholder = 'Item';
+                itemInput.value = data.item || '';
+                attachSuggestions(itemInput, itemSuggestions, 'item');
+
+
+                const amountInput = document.createElement('input');
+                amountInput.type = 'text';
+                amountInput.placeholder = 'Amount';
+                amountInput.value = data.amount || '';
+                attachSuggestions(amountInput, amountSuggestions, 'amount');
+
+                const brandInput = document.createElement('input');
+                brandInput.type = 'text';
+                brandInput.placeholder = 'Brand';
+                brandInput.value = data.brand || '';
+                attachSuggestions(brandInput, brandSuggestions, 'brand');
+
+                // === Calories Field with Inline Icon ===
+                const calorieWrapper = document.createElement('div');
+                calorieWrapper.className = 'calories-wrapper';
+
+                const caloriesInput = document.createElement('input');
+                caloriesInput.type = 'number';
+                caloriesInput.placeholder = 'Calories';
+                caloriesInput.className = 'calories-input';
+                caloriesInput.value = data.calories || '';
+
+                function persistRowEdits() {
+                    const key = formatDate(currentDate);
+                    let current = [];
+                    try { current = JSON.parse(logData[key]?.entry || '[]'); } catch { }
+                    if (!Array.isArray(current)) current = [];
+
+                    const id = wrapper.dataset.id;
+                    const index = current.findIndex(e => e._id === id);
+                    if (index === -1) return;
+
+                    const caloriesNum = Number(caloriesInput.value);
+                    current[index] = {
+                        ...current[index],
+                        item: itemInput.value.trim(),
+                        amount: amountInput.value.trim(),
+                        brand: brandInput.value.trim() || null,
+                        calories: Number.isFinite(caloriesNum) ? caloriesNum : 0
+                    };
+
+                    const caloriesTotal = current.reduce((sum, e) => sum + (Number(e.calories) || 0), 0);
+                    logData[key] = {
+                        entry: JSON.stringify(current, null, 2),
+                        calories: caloriesTotal,
+                        timestamp: new Date().toISOString()
+                    };
+                    localStorage.setItem('foodLog', JSON.stringify(logData));
+                    foodInput.value = logData[key].entry;
+                    jsonViewer.textContent = logData[key].entry;
+                    updateEntryHierarchy();
+                }
+
+                const persistRowEditsDebounced = debounce(persistRowEdits, 300);
+
+                const toggleBtn = document.createElement('button');
+                toggleBtn.className = 'toggle-calc-btn';
+                toggleBtn.type = 'button';
+                toggleBtn.innerText = '▼';
+
+                calorieWrapper.appendChild(caloriesInput);
+                calorieWrapper.appendChild(toggleBtn);
+
+                inputsDiv.appendChild(itemInput);
+                inputsDiv.appendChild(amountInput);
+                inputsDiv.appendChild(brandInput);
+                inputsDiv.appendChild(calorieWrapper);
+
+                main.appendChild(inputsDiv);
+
+                // === Calculator Panel (inside .entry-main) ===
+                const calculatorPanel = document.createElement('div');
+                calculatorPanel.className = 'calorie-calculator-panel';
+                calculatorPanel.style.display = 'none';
+                calculatorPanel.innerHTML = `
+  <div class="calc-expression">
+    <span class="calc-info" data-tooltip-id="calculation">ⓘ</span>
+    <input type="number" class="label-calories" placeholder="Calories" data-tooltip-id="basecal" />
+    <span>/</span>
+    <input type="number" class="label-qty" placeholder="Qty" data-tooltip-id="unit" />
+    <select class="label-unit">
+      <option value="g">g</option>
+      <option value="ml">ml</option>
+      <option value="serving">serving</option>
+      <option value="container">container</option>
+    </select>
+    <span>×</span>
+    <input type="number" class="calculator-amount" placeholder="Amount" data-tooltip-id="amount" />
+    <span class="calc-result-symbol">↵</span>
+  </div>
+`;
+
+                main.appendChild(calculatorPanel);
+                row.appendChild(main);
+
+                // === Trash Icon ===
+                const controlsDiv = document.createElement('div');
+                controlsDiv.className = 'entry-controls';
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'deleteBtn';
+                deleteBtn.textContent = '−';
+
+                deleteBtn.addEventListener('click', () => {
+                    const key = formatDate(currentDate);
+                    let current = [];
+                    try { current = JSON.parse(logData[key]?.entry || '[]'); } catch { }
+
+                    const id = wrapper.dataset.id;
+                    const index = current.findIndex(e => e._id === id);
+                    if (index === -1) return;
+
+                    // Store last deleted entry for undo
+                    lastDeletedEntry = current[index];
+                    lastDeletedDate = key;
+                    lastDeletedIndex = index;
+
+                    // Remove from list
+                    current.splice(index, 1);
+
+                    const caloriesTotal = current.reduce((s, e) => s + (Number(e.calories) || 0), 0);
+                    logData[key] = {
+                        entry: JSON.stringify(current, null, 2),
+                        calories: caloriesTotal,
+                        timestamp: new Date().toISOString()
+                    };
+                    localStorage.setItem('foodLog', JSON.stringify(logData));
+
+                    updateJsonViewer();
+                    rebuildSuggestionsFromLog();
+                    loadManualEntriesForDate();
+
+                    // Show undo button
+                    // Show header button (keep for redundancy)
+                    document.getElementById('undoDeleteBtn').style.display = 'inline-block';
+
+                    // Also show toast with Undo
+                    showToast('Item deleted.', [
+                        { label: 'Undo', onClick: undoLastDelete }
+                    ].reduce((acc, a) => acc.concat(a), [])); // tiny normalize
+                });
+
+                controlsDiv.appendChild(deleteBtn);
+                row.appendChild(controlsDiv);
+
+                // === Toggle calculator ===
+                toggleBtn.addEventListener('click', () => {
+                    const isOpen = calculatorPanel.style.display === 'flex';
+                    calculatorPanel.style.display = isOpen ? 'none' : 'flex';
+                    toggleBtn.textContent = isOpen ? '▼' : '✕';
+                    wrapper.classList.toggle('active', !isOpen);
+                    caloriesInput.classList.toggle('active', !isOpen);
+                });
+
+                // === Live calculation ===
+                function recalculateCalories() {
+                    const labelCals = parseFloat(calculatorPanel.querySelector('.label-calories').value);
+                    const labelQty = parseFloat(calculatorPanel.querySelector('.label-qty').value);
+                    let amount = parseFloat(amountInput.value);
+                    const fallback = calculatorPanel.querySelector('.calculator-amount');
+
+                    if (isNaN(amount)) {
+                        amount = parseFloat(fallback.value);
+                        if (!isNaN(amount)) amountInput.value = amount;
+                    } else {
+                        fallback.disabled = true;
+                    }
+
+                    if (!isNaN(labelCals) && !isNaN(labelQty) && labelQty > 0 && !isNaN(amount)) {
+                        const result = Math.round((labelCals / labelQty) * amount);
+                        caloriesInput.value = result;
+                        caloriesInput.dispatchEvent(new Event('input'));
+                    }
+                }
+
+                calculatorPanel.querySelectorAll('input, select').forEach(el =>
+                    el.addEventListener('input', recalculateCalories)
+                );
+                amountInput.addEventListener('input', recalculateCalories);
+                [itemInput, amountInput, brandInput, caloriesInput].forEach(el => {
+                    el.addEventListener('input', persistRowEditsDebounced);
+                    el.addEventListener('change', () => {
+                        persistRowEdits();
+                        rebuildSuggestionsFromLog();
+                    });
+                });
+                itemInput.addEventListener('change', () => {
+                    if (applyItemProfileAutofill(itemInput, amountInput, brandInput, caloriesInput)) {
+                        recalculateCalories();
+                        persistRowEdits();
+                    }
+                });
+                amountInput.addEventListener('change', () => {
+                    if (applyItemProfileAutofill(itemInput, amountInput, brandInput, caloriesInput, { allowAmountFill: false })) {
+                        recalculateCalories();
+                        persistRowEdits();
+                    }
+                });
+
+
+
+                // === Final assembly ===
+                wrapper.appendChild(row);
+                const newItemWrapper = container.querySelector('.entry-wrapper.new-item');
+                if (newItemWrapper) {
+                    container.insertBefore(wrapper, newItemWrapper.nextSibling);
+                } else {
+                    container.insertBefore(wrapper, container.firstChild);
+                }
+
+                // === Drag support ===
+                if (!container.hasDropListeners) {
+                    container.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        const dragging = container.querySelector('.dragging');
+                        const siblings = [...container.querySelectorAll('.entry-row:not(.dragging)')];
+
+                        const after = siblings.find(sibling => {
+                            const rect = sibling.getBoundingClientRect();
+                            return e.clientY < rect.top + rect.height / 2;
+                        });
+
+                        if (after) {
+                            container.insertBefore(dragging.parentElement, after.parentElement);
+                        } else {
+                            container.appendChild(dragging.parentElement);
+                        }
+                    });
+                    container.hasDropListeners = true;
+                }
+
+                if (autoScroll) {
+                    wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+
+            function convertManualEntriesToJson() {
+                const wrappers = document.querySelectorAll('.entry-wrapper');
+                const entries = [];
+
+                wrappers.forEach(wrapper => {
+                    const itemInput = wrapper.querySelector('input[placeholder="Item"]');
+                    const amountInput = wrapper.querySelector('input[placeholder="Amount"]');
+                    const brandInput = wrapper.querySelector('input[placeholder="Brand"]');
+                    const caloriesInput = wrapper.querySelector('input[placeholder="Calories"]');
+
+                    const item = itemInput?.value.trim() || '';
+                    const amount = amountInput?.value.trim() || '';
+                    const brand = brandInput?.value.trim() || '';
+                    const calories = parseFloat(caloriesInput?.value.trim());
+
+                    if (item && amount && !isNaN(calories)) {
+                        entries.push({ item, amount, brand, calories });
+                    }
+                });
+
+                return entries;
+            }
+
+            function loadManualEntriesForDate() {
+                const key = formatDate(currentDate);
+                const container = document.getElementById('manualRowsContainer');
+                container.innerHTML = '';
+
+                if (!container._wired) {             // ← gate once
+                    container.addEventListener('drop', persistOrder);
+                    container.addEventListener('dragend', persistOrder);
+                    container._wired = true;
+                }
+
+                const parsed = ensureIdsForDate(key); // ✅ ensure everything has _id
+
+                renderNewItemInputRow();
+                if (Array.isArray(parsed)) parsed.slice().reverse().forEach(item => addManualRow(item, false));
+                updateEntryHierarchy();
+            }
+
+            const tooltipEl = document.getElementById('tooltip');
+            let tooltipTimer = null;
+
+            document.addEventListener('mouseover', (e) => {
+                const target = e.target.closest('[data-tooltip], [data-tooltip-id]');
+                if (!target) return;
+
+                // Determine tooltip content
+                let text = target.getAttribute('data-tooltip');
+                const id = target.getAttribute('data-tooltip-id');
+                if (!text && id && tooltipRegistry[id]) {
+                    text = tooltipRegistry[id];
+                }
+
+                if (!text) return;
+
+                tooltipTimer = setTimeout(() => {
+                    tooltipEl.textContent = text;
+                    tooltipEl.classList.add('visible');
+
+                    const rect = target.getBoundingClientRect();
+                    tooltipEl.style.top = `${rect.bottom + 6 + window.scrollY}px`;
+                    tooltipEl.style.left = `${rect.left + rect.width / 2 - tooltipEl.offsetWidth / 2}px`;
+                }, 500);
+            });
+
+            document.addEventListener('mouseout', (e) => {
+                if (tooltipTimer) clearTimeout(tooltipTimer);
+                tooltipTimer = null;
+                tooltipEl.classList.remove('visible');
+            });
+
+        </script>
+    </div>
+</body>
+
+</html>
