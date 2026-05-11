@@ -1626,7 +1626,39 @@
                 </label>
                 <span class="calendar-hero-title" id="calendarMonthHeading" style="display:none;">July 2025</span>
             </div>
-            <div class="sidebar-panel-group">
+
+            <hr>
+            <div class="calendar-nav">
+                <div class="calendar-nav-row calendar-year-row">
+                    <button id="yearBackBtn" onclick="changeCalendarYear(-1)">
+                        ⟨<span class="calendar-compass-dot"></span>
+                    </button>
+                    <span id="calendarYearLabel">2025</span>
+                    <button id="yearForwardBtn" onclick="changeCalendarYear(+1)">
+                        <span class="calendar-compass-dot"></span>⟩
+                    </button>
+                </div>
+                <div class="calendar-nav-row calendar-month-row">
+                    <button id="monthBackBtn" onclick="changeCalendarMonth(-1)">
+                        ⟨<span class="calendar-compass-dot"></span>
+                    </button>
+                    <span id="calendarMonthLabel">July</span>
+                    <button id="monthForwardBtn" onclick="changeCalendarMonth(+1)">
+                        <span class="calendar-compass-dot"></span>⟩
+                    </button>
+                </div>
+            </div>
+            <div class="calendar-weekdays">
+                <div>Sun</div>
+                <div>Mon</div>
+                <div>Tue</div>
+                <div>Wed</div>
+                <div>Thu</div>
+                <div>Fri</div>
+                <div>Sat</div>
+            </div>
+            <div class="calendar" id="calendarContainer"></div>
+                        <div class="sidebar-panel-group">
                 <div class="sidebar-panel-block">
                     <div class="sidebar-panel-title">Views</div>
                     <div class="sidebar-toggle-list">
@@ -1663,37 +1695,6 @@
                     </div>
                 </div>
             </div>
-            <hr>
-            <div class="calendar-nav">
-                <div class="calendar-nav-row calendar-year-row">
-                    <button id="yearBackBtn" onclick="changeCalendarYear(-1)">
-                        ⟨<span class="calendar-compass-dot"></span>
-                    </button>
-                    <span id="calendarYearLabel">2025</span>
-                    <button id="yearForwardBtn" onclick="changeCalendarYear(+1)">
-                        <span class="calendar-compass-dot"></span>⟩
-                    </button>
-                </div>
-                <div class="calendar-nav-row calendar-month-row">
-                    <button id="monthBackBtn" onclick="changeCalendarMonth(-1)">
-                        ⟨<span class="calendar-compass-dot"></span>
-                    </button>
-                    <span id="calendarMonthLabel">July</span>
-                    <button id="monthForwardBtn" onclick="changeCalendarMonth(+1)">
-                        <span class="calendar-compass-dot"></span>⟩
-                    </button>
-                </div>
-            </div>
-            <div class="calendar-weekdays">
-                <div>Sun</div>
-                <div>Mon</div>
-                <div>Tue</div>
-                <div>Wed</div>
-                <div>Thu</div>
-                <div>Fri</div>
-                <div>Sat</div>
-            </div>
-            <div class="calendar" id="calendarContainer"></div>
         </aside>
         <main class="main">
             <div class="card-row" id="topRow">
